@@ -1,6 +1,8 @@
 package com.example.diego.efemerides;
 
+import android.arch.persistence.room.Room;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -12,6 +14,9 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import java.util.Calendar;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements CalendarFragment.OnFragmentInteractionListener, InformationFragment.OnFragmentInteractionListener{
     private CalendarFragment calendarFragment;
@@ -31,6 +36,23 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
                         .setAction("Action", null).show();
             }
         });
+
+
+
+        final AppDatabase db = Room.inMemoryDatabaseBuilder(getApplicationContext(),
+                AppDatabase.class).build();
+        new Thread(new Runnable() {
+            public void run() {
+                db.eventDao().insertEvent(new Event("Prueba", 6, 31, 1));
+                List<Event> retrievedEvents = db.eventDao().getAll();
+                Log.d("EVENTOS", ""+retrievedEvents.size());
+                for(Event event : retrievedEvents){
+                    Log.d("retrieved event",event.getEventName());
+                }
+            }
+        }).start();
+
+
 
 
         informationFragment = new InformationFragment();
