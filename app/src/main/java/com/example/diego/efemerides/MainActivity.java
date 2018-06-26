@@ -13,6 +13,8 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.prolificinteractive.materialcalendarview.CalendarDay;
+
 public class MainActivity extends AppCompatActivity implements CalendarFragment.OnFragmentInteractionListener, InformationFragment.OnFragmentInteractionListener{
     private CalendarFragment calendarFragment;
     private InformationFragment informationFragment;
@@ -75,18 +77,18 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
     }
 
     @Override
-    public void onFragmentInteraction( int year, int month, int dayOfMonth) {
+    public void onFragmentInteraction(CalendarDay date) {
         if(findViewById(R.id.fragment_container2) != null) {
             InformationFragment informationFragment = (InformationFragment) getSupportFragmentManager().findFragmentByTag("information");
             if(informationFragment != null){
-                informationFragment.setText("Fecha: " + dayOfMonth + "-" + (month+ 1) + "-" + year);
+                informationFragment.setText("Fecha: " + date.getDay() + "-" + (date.getMonth()+ 1) + "-" + date.getYear());
             }
         }
 
         else{
             InformationFragment newFragment = new InformationFragment();
             Bundle args = new Bundle();
-            args.putString(InformationFragment.ARG_DATE, "Fecha: " + dayOfMonth + "-" + (month + 1) + "-" + year);
+            args.putString(InformationFragment.ARG_DATE, "Fecha: " + date.getDay() + "-" + (date.getMonth() + 1) + "-" + date.getYear());
             newFragment.setArguments(args);
 
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -99,8 +101,6 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
             transaction.commit();
 
         }
-
-
     }
 
     @Override

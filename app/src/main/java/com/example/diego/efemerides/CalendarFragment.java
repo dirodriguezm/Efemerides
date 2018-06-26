@@ -10,6 +10,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CalendarView;
 
+import com.prolificinteractive.materialcalendarview.CalendarDay;
+import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
+import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -21,7 +25,7 @@ import android.widget.CalendarView;
  */
 public class CalendarFragment extends Fragment {
 
-    private CalendarView calendarView;
+    private MaterialCalendarView calendarView;
 
     private OnFragmentInteractionListener mListener;
 
@@ -60,20 +64,22 @@ public class CalendarFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_calendar, container, false);
         calendarView = view.findViewById(R.id.calendarView);
-        calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+        calendarView.state().edit()
+                .setMaximumDate(CalendarDay.from(2025,12,31 ))
+                .setMinimumDate(CalendarDay.from(2000,1,1 ))
+                .commit();
+        calendarView.setOnDateChangedListener(new OnDateSelectedListener() {
             @Override
-            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
-                onDateChange(year,month,dayOfMonth);
+            public void onDateSelected(@NonNull MaterialCalendarView widget, @NonNull CalendarDay date, boolean selected) {
+                onDateChange(date);
             }
         });
         return view;
     }
 
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onDateChange( int year, int month, int dayOfMonth) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(year,month,dayOfMonth);
+    private void onDateChange(CalendarDay date) {
+        if (mListener != null){
+            mListener.onFragmentInteraction(date);
         }
     }
 
@@ -106,6 +112,6 @@ public class CalendarFragment extends Fragment {
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onFragmentInteraction( int year, int month, int dayOfMonth);
+        void onFragmentInteraction(CalendarDay date);
     }
 }
