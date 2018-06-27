@@ -27,7 +27,12 @@ public class InformationFragment extends Fragment {
     public static String ARG_DATE = "date";
     private TextView textView;
     Calendar date = Calendar.getInstance();
-    private String dateParam = "Fecha: " + date.get(Calendar.DAY_OF_MONTH) + "-" + ( date.get(Calendar.MONTH) + 1 ) + "-" + date.get(Calendar.YEAR);
+    private String[] monthName = {"Enero", "Febrero",
+            "Marzo", "Abril", "Mayo", "Junio", "Julio",
+            "Agosto", "Septiembre", "Octubre", "Noviembre",
+            "Diciembre"};
+
+    private String dateParam = date.get(Calendar.DAY_OF_MONTH) + " de " + monthName[date.get(Calendar.MONTH)] + " de " + date.get(Calendar.YEAR);
 
     private OnFragmentInteractionListener mListener;
 
@@ -64,7 +69,7 @@ public class InformationFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_information, container, false);
-        textView = view.findViewById(R.id.textView);
+        textView = view.findViewById(R.id.fecha_titulo);
         textView.setText(dateParam);
         return view;
     }
