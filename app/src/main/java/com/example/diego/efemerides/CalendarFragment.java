@@ -14,6 +14,10 @@ import com.prolificinteractive.materialcalendarview.CalendarDay;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -28,6 +32,10 @@ public class CalendarFragment extends Fragment {
     private MaterialCalendarView calendarView;
 
     private OnFragmentInteractionListener mListener;
+
+    public static String ARG_EVENTS = "events";
+
+    private ArrayList<Event> events;
 
     public CalendarFragment() {
         // Required empty public constructor
@@ -53,7 +61,7 @@ public class CalendarFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-
+            events = getArguments().getParcelableArrayList(ARG_EVENTS);
         }
 
     }
@@ -74,6 +82,19 @@ public class CalendarFragment extends Fragment {
                 onDateChange(date);
             }
         });
+        if(events != null) {
+            for (Event event : events) {
+                Calendar eventDate = Calendar.getInstance();
+                List<CalendarDay> calendarDays = null;
+                int eventYear = event.getEventYear();
+                int eventMonth = event.getEventMonth();
+                int eventDay = event.getEventDay();
+                for (int i = calendarView.getMinimumDate().getYear(); i <= calendarView.getMaximumDate().getYear(); i++) {
+                    eventDate.set(i, eventMonth, eventDay);
+                    calendarDays.add(CalendarDay.from(eventDate));
+                }
+            }
+        }
         return view;
     }
 

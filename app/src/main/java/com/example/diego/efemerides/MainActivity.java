@@ -5,13 +5,12 @@ import android.app.Dialog;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.ParseException;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.os.Parcelable;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -21,14 +20,22 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.DatePicker;
-import java.lang.reflect.Field;
+
 
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Locale;
+import java.util.Date;
+import java.util.List;
 
-public class MainActivity extends FragmentActivity implements CalendarFragment.OnFragmentInteractionListener, InformationFragment.OnFragmentInteractionListener{
+public class MainActivity extends AppCompatActivity implements CalendarFragment.OnFragmentInteractionListener, InformationFragment.OnFragmentInteractionListener{
     private CalendarFragment calendarFragment;
     private InformationFragment informationFragment;
     private String[] monthName = {"Enero", "Febrero",
@@ -43,26 +50,30 @@ public class MainActivity extends FragmentActivity implements CalendarFragment.O
         //setSupportActionBar(toolbar);
         //Locale spanish = new Locale("es", "ES");
         //Locale.setDefault(spanish);
+        informationFragment = new InformationFragment();
+        calendarFragment = new CalendarFragment();
 
 
-        final AppDatabase db = Room.inMemoryDatabaseBuilder(getApplicationContext(),
-                AppDatabase.class).build();
+        final AppDatabase db = AppDatabase.getAppDatabase(this);
         new Thread(new Runnable() {
             public void run() {
-                db.eventDao().insertEvent(new Event("Prueba", 6, 31, 1));
                 List<Event> retrievedEvents = db.eventDao().getAll();
-                Log.d("EVENTOS", ""+retrievedEvents.size());
-                for(Event event : retrievedEvents){
-                    Log.d("retrieved event",event.getEventName());
+                if(retrievedEvents.size() == 0) {
+                    ArrayList<Event> events = createEventsFromFile();
+                    for (Event event : events) {
+                        db.eventDao().insertEvent(event);
+                    }
                 }
+                Bundle args = new Bundle();
+                args.putParcelableArrayList(calendarFragment.ARG_EVENTS, (ArrayList<? extends Parcelable>) retrievedEvents);
+                calendarFragment.setArguments(args);
             }
         }).start();
 
 
 
 
-        informationFragment = new InformationFragment();
-        calendarFragment = new CalendarFragment();
+
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
@@ -78,6 +89,53 @@ public class MainActivity extends FragmentActivity implements CalendarFragment.O
         }
 
         fragmentTransaction.commit();
+    }
+
+    public ArrayList<Event> createEventsFromFile(){
+        InputStream inputStream = getResources().openRawResource(R.raw.efemerides);
+        ArrayList<Event> events = new ArrayList<>();
+        try {
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            String line;
+            while( (line=bufferedReader.readLine())  != null){
+                String [] splittedLine = line.split(" ");
+                int day = Integer.parseInt(splittedLine[0]);
+                int month = monthNameToInt(splittedLine[1]);
+                String name = "";
+                int year = 0;
+                for(int i = 2; i < splittedLine.length; i++){
+                    if(splittedLine[i].startsWith("(")){
+                        String yearStr = splittedLine[i].substring(1,5);
+                        try{
+                            year = Integer.parseInt(yearStr);
+                        }
+                        catch (NumberFormatException e){
+                            year = 0;
+                        }
+                        break;
+                    }
+                    else {
+                        name += splittedLine[i] + " ";
+                    }
+                }
+                events.add(new Event(name, year, month, day, 1));
+            }
+            return events;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        catch (java.text.ParseException e) {
+            e.printStackTrace();
+        }
+        return events;
+    }
+
+    private int monthNameToInt(String s) throws ParseException, java.text.ParseException {
+        Date date = new SimpleDateFormat("MMMM").parse(s);
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        return (cal.get(Calendar.MONTH)) + 1;
     }
 
     @Override
@@ -104,7 +162,6 @@ public class MainActivity extends FragmentActivity implements CalendarFragment.O
 
     @Override
     public void onFragmentInteraction(CalendarDay date) {
-
         if(findViewById(R.id.fragment_container2) != null) {
             InformationFragment informationFragment = (InformationFragment) getSupportFragmentManager().findFragmentByTag("information");
             if(informationFragment != null){
