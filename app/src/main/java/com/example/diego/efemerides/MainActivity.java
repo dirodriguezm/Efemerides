@@ -44,6 +44,23 @@ public class MainActivity extends FragmentActivity implements CalendarFragment.O
         //Locale spanish = new Locale("es", "ES");
         //Locale.setDefault(spanish);
 
+
+        final AppDatabase db = Room.inMemoryDatabaseBuilder(getApplicationContext(),
+                AppDatabase.class).build();
+        new Thread(new Runnable() {
+            public void run() {
+                db.eventDao().insertEvent(new Event("Prueba", 6, 31, 1));
+                List<Event> retrievedEvents = db.eventDao().getAll();
+                Log.d("EVENTOS", ""+retrievedEvents.size());
+                for(Event event : retrievedEvents){
+                    Log.d("retrieved event",event.getEventName());
+                }
+            }
+        }).start();
+
+
+
+
         informationFragment = new InformationFragment();
         calendarFragment = new CalendarFragment();
         FragmentManager fragmentManager = getSupportFragmentManager();
