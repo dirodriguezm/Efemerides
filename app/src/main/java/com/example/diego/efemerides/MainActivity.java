@@ -62,27 +62,31 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
                         db.eventDao().insertEvent(event);
                     }
                 }
+                retrievedEvents = db.eventDao().getAll();
+                ArrayList<? extends Parcelable> test = (ArrayList<? extends Parcelable>) retrievedEvents;
+                Log.d("EVENTS BEFORE", test.size()+"");
                 Bundle args = new Bundle();
                 args.putParcelableArrayList(calendarFragment.ARG_EVENTS, (ArrayList<? extends Parcelable>) retrievedEvents);
                 calendarFragment.setArguments(args);
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                if(findViewById(R.id.fragment_container1) != null && findViewById(R.id.fragment_container2) != null){
+                    fragmentTransaction.replace(R.id.fragment_container2,informationFragment ,"information");
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.replace(R.id.fragment_container1, calendarFragment, "calendar");
+                    fragmentTransaction.addToBackStack(null);
+                }
+                else{
+                    fragmentTransaction.replace(R.id.fragment_container, calendarFragment , "calendar");
+                    fragmentTransaction.addToBackStack(null);
+                }
+
+                fragmentTransaction.commit();
             }
         }).start();
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        if(findViewById(R.id.fragment_container1) != null && findViewById(R.id.fragment_container2) != null){
-            fragmentTransaction.replace(R.id.fragment_container2,informationFragment ,"information");
-            fragmentTransaction.addToBackStack(null);
-            fragmentTransaction.replace(R.id.fragment_container1, calendarFragment, "calendar");
-            fragmentTransaction.addToBackStack(null);
-        }
-        else{
-            fragmentTransaction.replace(R.id.fragment_container, new CalendarFragment() , "calendar");
-            fragmentTransaction.addToBackStack(null);
-        }
-
-        fragmentTransaction.commit();
     }
 
     public ArrayList<Event> createEventsFromFile(){

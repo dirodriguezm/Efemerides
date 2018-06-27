@@ -1,10 +1,12 @@
 package com.example.diego.efemerides;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,6 +65,9 @@ public class CalendarFragment extends Fragment {
         if (getArguments() != null) {
             events = getArguments().getParcelableArrayList(ARG_EVENTS);
         }
+        else{
+            Log.d("EVENTS", "NULL");
+        }
 
     }
 
@@ -83,16 +88,21 @@ public class CalendarFragment extends Fragment {
             }
         });
         if(events != null) {
+
+
             for (Event event : events) {
                 Calendar eventDate = Calendar.getInstance();
-                List<CalendarDay> calendarDays = null;
+                ArrayList<CalendarDay> calendarDays = new ArrayList<>();
                 int eventYear = event.getEventYear();
                 int eventMonth = event.getEventMonth();
                 int eventDay = event.getEventDay();
                 for (int i = calendarView.getMinimumDate().getYear(); i <= calendarView.getMaximumDate().getYear(); i++) {
-                    eventDate.set(i, eventMonth, eventDay);
+                    eventDate.set(i, eventMonth - 1, eventDay);
+                    Log.d("SETTING", i + "-" + eventMonth + "-" + eventDay);
                     calendarDays.add(CalendarDay.from(eventDate));
+
                 }
+                calendarView.addDecorator(new EventDecorator(Color.RED, calendarDays));
             }
         }
         return view;
