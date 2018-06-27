@@ -2,6 +2,7 @@ package com.example.diego.efemerides;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -14,6 +15,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -35,7 +37,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements CalendarFragment.OnFragmentInteractionListener, InformationFragment.OnFragmentInteractionListener{
+public class MainActivity extends AppCompatActivity implements CalendarFragment.OnFragmentInteractionListener, InformationFragment.OnFragmentInteractionListener, PopupMenu.OnMenuItemClickListener {
     private CalendarFragment calendarFragment;
     private InformationFragment informationFragment;
     private String[] monthName = {"Enero", "Febrero",
@@ -201,6 +203,43 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
         DialogFragment newFragment = new DatePickerFragment();
         newFragment.show(getSupportFragmentManager(), "datePicker");
     }
+
+    public void showMenu(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+
+        // This activity implements OnMenuItemClickListener
+        popup.setOnMenuItemClickListener(this);
+        popup.inflate(R.menu.actions);
+        popup.show();
+    }
+
+    @Override
+    public boolean onMenuItemClick(MenuItem item) {
+        Intent nuevoDia = new Intent(this, NuevoDiaActivity.class);
+        switch (item.getItemId()) {
+            case R.id.dia:
+                nuevoDia.putExtra("item",NuevoDiaActivity.DIA);
+                startActivity(nuevoDia);
+                return true;
+            case R.id.dia_historico:
+                nuevoDia.putExtra("item",NuevoDiaActivity.DIA_HIST);
+                startActivity(nuevoDia);
+                return true;
+            case R.id.dia_movil:
+                nuevoDia.putExtra("item",NuevoDiaActivity.DIA_MOVIL);
+                startActivity(nuevoDia);
+                return true;
+            case R.id.cumpleaños:
+                nuevoDia.putExtra("item",NuevoDiaActivity.CUMPLE);
+                startActivity(nuevoDia);
+                return true;
+            default:
+                return false;
+        }
+
+    }
+
+
     public static class DatePickerFragment extends DialogFragment
             implements DatePickerDialog.OnDateSetListener, DatePicker.OnDateChangedListener {
 

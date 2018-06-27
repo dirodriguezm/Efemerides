@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/dia"
+        android:title="Dia"/>
+    <item android:id="@+id/dia_historico"
+        android:title="Dia Historico" />
+    <item android:id="@+id/dia_movil"
+        android:title="Dia Movil" />
+    <item android:id="@+id/cumpleaños"
+        android:title="Cumpleaños" />
+
+</menu>
