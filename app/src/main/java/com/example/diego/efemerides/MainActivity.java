@@ -1,7 +1,9 @@
 package com.example.diego.efemerides;
 
+import android.arch.persistence.room.Room;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
@@ -13,7 +15,20 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.google.common.io.Resources;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements CalendarFragment.OnFragmentInteractionListener, InformationFragment.OnFragmentInteractionListener{
     private CalendarFragment calendarFragment;
@@ -34,26 +49,25 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
             }
         });
 
+        informationFragment = new InformationFragment();
+        calendarFragment = new CalendarFragment();
 
-
-        final AppDatabase db = Room.inMemoryDatabaseBuilder(getApplicationContext(),
-                AppDatabase.class).build();
+        final AppDatabase db = AppDatabase.getAppDatabase(this);
         new Thread(new Runnable() {
             public void run() {
-                db.eventDao().insertEvent(new Event("Prueba", 6, 31, 1));
                 List<Event> retrievedEvents = db.eventDao().getAll();
-                Log.d("EVENTOS", ""+retrievedEvents.size());
-                for(Event event : retrievedEvents){
-                    Log.d("retrieved event",event.getEventName());
+                if(retrievedEvents.size() == 0) {
+                    ArrayList<Event> events = createEventsFromFile();
+                    for (Event event : events) {
+                        db.eventDao().insertEvent(event);
+                    }
                 }
+                Bundle args = new Bundle();
+                args.putParcelableArrayList(calendarFragment.ARG_EVENTS, (ArrayList<? extends Parcelable>) retrievedEvents);
+                calendarFragment.setArguments(args);
             }
         }).start();
 
-
-
-
-        informationFragment = new InformationFragment();
-        calendarFragment = new CalendarFragment();
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
@@ -69,6 +83,52 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
         }
 
         fragmentTransaction.commit();
+    }
+
+    public ArrayList<Event> createEventsFromFile(){
+        InputStream inputStream = getResources().openRawResource(R.raw.efemerides);
+        ArrayList<Event> events = new ArrayList<>();
+        try {
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            String line;
+            while( (line=bufferedReader.readLine())  != null){
+                String [] splittedLine = line.split(" ");
+                int day = Integer.parseInt(splittedLine[0]);
+                int month = monthNameToInt(splittedLine[1]);
+                String name = "";
+                int year = 0;
+                for(int i = 2; i < splittedLine.length; i++){
+                    if(splittedLine[i].startsWith("(")){
+                        String yearStr = splittedLine[i].substring(1,5);
+                        try{
+                            year = Integer.parseInt(yearStr);
+                        }
+                        catch (NumberFormatException e){
+                            year = 0;
+                        }
+                        break;
+                    }
+                    else {
+                        name += splittedLine[i] + " ";
+                    }
+                }
+                events.add(new Event(name, year, month, day, 1));
+            }
+            return events;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return events;
+    }
+
+    private int monthNameToInt(String s) throws ParseException {
+        Date date = new SimpleDateFormat("MMMM").parse(s);
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        return (cal.get(Calendar.MONTH)) + 1;
     }
 
     @Override
