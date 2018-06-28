@@ -14,17 +14,21 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
+import android.widget.TextView;
 
 import java.lang.reflect.Field;
 import java.util.Calendar;
 
-public class NuevoDiaActivity extends AppCompatActivity {
+public class NuevoDiaActivity extends AppCompatActivity implements TextView.OnEditorActionListener {
 
     public static final int DIA = 0;
     public static final int DIA_HIST = 1;
@@ -55,6 +59,10 @@ public class NuevoDiaActivity extends AppCompatActivity {
         fecha = findViewById(R.id.fecha);
         año = findViewById(R.id.año);
         nombre = findViewById(R.id.nombre);
+        nombre.clearFocus();
+        //nombre.setOnFocusChangeListener(this);
+        //nombre.setOnKeyListener(this);
+        nombre.setOnEditorActionListener(this);
         item = extras.getInt("item");
         setDate = false;
         switch (item){
@@ -130,6 +138,22 @@ public class NuevoDiaActivity extends AppCompatActivity {
     public void setMovilDay(int day){
         fecha.setText("Dia "+day);
         setDate = true;
+    }
+
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        if(actionId== EditorInfo.IME_ACTION_DONE){
+            //Clear focus here from edittext
+            String text = nombre.getText().toString();
+
+            InputMethodManager imm = (InputMethodManager)v.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
+            nombre.clearFocus();
+
+            return true;
+        }
+        return false;
     }
 
     public static class DatePickerYearDialogFragment extends DialogFragment implements DialogInterface.OnClickListener{
@@ -368,7 +392,7 @@ public class NuevoDiaActivity extends AppCompatActivity {
 
 
                 pickerYear = new NumberPicker(activity);
-                pickerYear.setMinValue(0);
+                pickerYear.setMinValue(1);
                 pickerYear.setMaxValue(year);
                 pickerYear.setValue(year);
                 pickerYear.setOnValueChangedListener(this);
