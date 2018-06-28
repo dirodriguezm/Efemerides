@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,9 +32,14 @@ public class InformationFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     public static String ARG_DATE = "date";
     public static String ARG_EVENT = "event";
+    public static String ARG_DAY_MONTH_EVENT = "dayMonthEvent";
+    public static String ARG_DAY_NUMBER_EVENT = "dayNumberEvent";
     private TextView textView;
     private CalendarDay dateParam = CalendarDay.from(Calendar.getInstance());
     private Collection<Event> events;
+    private Collection<DayMonthEvent> dayMonthEvents;
+    private Collection<DayNumberEvent> dayNumberEvents;
+
     private OnFragmentInteractionListener mListener;
 
     private RecyclerView recyclerView;
@@ -66,6 +72,8 @@ public class InformationFragment extends Fragment {
         if (getArguments() != null) {
             dateParam = getArguments().getParcelable(ARG_DATE);
             events = getArguments().getParcelableArrayList(ARG_EVENT);
+            dayMonthEvents = getArguments().getParcelableArrayList(ARG_DAY_MONTH_EVENT);
+            dayNumberEvents = getArguments().getParcelableArrayList(ARG_DAY_NUMBER_EVENT);
         }
     }
 
@@ -80,7 +88,7 @@ public class InformationFragment extends Fragment {
         recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(this.getContext());
         recyclerView.setLayoutManager(layoutManager);
-        adapter = new EventListAdapter((ArrayList<Event>) events, dateParam);
+        adapter = new EventListAdapter((ArrayList<Event>) events, (ArrayList<DayMonthEvent>)dayMonthEvents, (ArrayList<DayNumberEvent>)dayNumberEvents, dateParam);
         recyclerView.setAdapter(adapter);
         return view;
     }
@@ -109,13 +117,22 @@ public class InformationFragment extends Fragment {
         mListener = null;
     }
 
-    public void update(String text, Collection<Event> events) {
+    public void update(String text, Collection<Event> events, Collection<DayMonthEvent> dayMonthEvents, Collection<DayNumberEvent> dayNumberEvents) {
         textView.setText(text);
         ArrayList<Event> events1 = new ArrayList<>();
+        ArrayList<DayMonthEvent> events2 = new ArrayList<>();
+        ArrayList<DayNumberEvent> events3 = new ArrayList<>();
         for (Event event : events){
             events1.add(event);
         }
-        adapter = new EventListAdapter(events1, dateParam);
+        for (DayNumberEvent event : dayNumberEvents){
+            events3.add(event);
+        }
+        for (DayMonthEvent event : dayMonthEvents){
+            events2.add(event);
+        }
+        adapter = new EventListAdapter(events1, events2,events3, dateParam);
+        Log.d("PASSING TO ADAPTER", events2.size() +"");
         recyclerView.setAdapter(adapter);
     }
 
