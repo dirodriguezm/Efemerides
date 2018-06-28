@@ -1,56 +1,60 @@
 package com.example.diego.efemerides;
 
-import android.arch.persistence.room.Room;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.net.ParseException;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.DatePicker;
 
-import com.google.common.io.Resources;
+
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.ParseException;
+import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements CalendarFragment.OnFragmentInteractionListener, InformationFragment.OnFragmentInteractionListener{
+public class MainActivity extends AppCompatActivity implements CalendarFragment.OnFragmentInteractionListener, InformationFragment.OnFragmentInteractionListener, PopupMenu.OnMenuItemClickListener {
     private CalendarFragment calendarFragment;
     private InformationFragment informationFragment;
+    private String[] monthName = {"Enero", "Febrero",
+            "Marzo", "Abril", "Mayo", "Junio", "Julio",
+            "Agosto", "Septiembre", "Octubre", "Noviembre",
+            "Diciembre"};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
+        //setSupportActionBar(toolbar);
+        //Locale spanish = new Locale("es", "ES");
+        //Locale.setDefault(spanish);
         informationFragment = new InformationFragment();
         calendarFragment = new CalendarFragment();
+
 
         final AppDatabase db = AppDatabase.getAppDatabase(this);
         new Thread(new Runnable() {
@@ -122,13 +126,14 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
             return events;
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (ParseException e) {
+        }
+        catch (java.text.ParseException e) {
             e.printStackTrace();
         }
         return events;
     }
 
-    private int monthNameToInt(String s) throws ParseException {
+    private int monthNameToInt(String s) throws ParseException, java.text.ParseException {
         Date date = new SimpleDateFormat("MMMM").parse(s);
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
@@ -162,14 +167,14 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
         if(findViewById(R.id.fragment_container2) != null) {
             InformationFragment informationFragment = (InformationFragment) getSupportFragmentManager().findFragmentByTag("information");
             if(informationFragment != null){
-                informationFragment.setText("Fecha: " + date.getDay() + "-" + (date.getMonth()+ 1) + "-" + date.getYear());
+                informationFragment.setText(date.getDay() + " de " + monthName[date.getMonth()] + " de " + date.getYear());
             }
         }
 
         else{
             InformationFragment newFragment = new InformationFragment();
             Bundle args = new Bundle();
-            args.putString(InformationFragment.ARG_DATE, "Fecha: " + date.getDay() + "-" + (date.getMonth() + 1) + "-" + date.getYear());
+            args.putString(InformationFragment.ARG_DATE, date.getDay() + " de " + monthName[date.getMonth()] + " de " + date.getYear());
             newFragment.setArguments(args);
 
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -192,5 +197,157 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
     @Override
     public void onFragmentInteraction(Uri uri) {
 
+    }
+
+    public void showDatePickerDialog(View v) {
+        DialogFragment newFragment = new DatePickerFragment();
+        newFragment.show(getSupportFragmentManager(), "datePicker");
+    }
+
+    public void showMenu(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+
+        // This activity implements OnMenuItemClickListener
+        popup.setOnMenuItemClickListener(this);
+        popup.inflate(R.menu.actions);
+        popup.show();
+    }
+
+    @Override
+    public boolean onMenuItemClick(MenuItem item) {
+        Intent nuevoDia = new Intent(this, NuevoDiaActivity.class);
+        switch (item.getItemId()) {
+            case R.id.dia:
+                nuevoDia.putExtra("item",NuevoDiaActivity.DIA);
+                startActivity(nuevoDia);
+                return true;
+            case R.id.dia_historico:
+                nuevoDia.putExtra("item",NuevoDiaActivity.DIA_HIST);
+                startActivity(nuevoDia);
+                return true;
+            case R.id.dia_movil:
+                nuevoDia.putExtra("item",NuevoDiaActivity.DIA_MOVIL);
+                startActivity(nuevoDia);
+                return true;
+            case R.id.cumpleaños:
+                nuevoDia.putExtra("item",NuevoDiaActivity.CUMPLE);
+                startActivity(nuevoDia);
+                return true;
+            default:
+                return false;
+        }
+
+    }
+
+
+    public static class DatePickerFragment extends DialogFragment
+            implements DatePickerDialog.OnDateSetListener, DatePicker.OnDateChangedListener {
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Use the current date as the default date in the picker
+            final Calendar c = Calendar.getInstance();
+            int year = c.get(Calendar.YEAR);
+            int month = c.get(Calendar.MONTH);
+            int day = c.get(Calendar.DAY_OF_MONTH);
+            //Locale spanish = new Locale("es", "ES");
+            //Locale.setDefault(spanish);
+
+            // Create a new instance of DatePickerDialog and return it
+            DatePickerDialog dialog = new DatePickerDialog(getActivity(), this, year, month, day);
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.setTitle("asd");
+            //dialog.getDatePicker().setMaxDate(c.getTimeInMillis());
+            //c.set(0,0,1);
+            //dialog.getDatePicker().setMinDate(c.getTimeInMillis());
+
+            DatePicker datePicker = dialog.getDatePicker();
+            datePicker.init(datePicker.getYear(),datePicker.getMonth(),datePicker.getDayOfMonth(),this);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+
+                int daySpinnerId = Resources.getSystem().getIdentifier("day", "id", "android");
+                if (daySpinnerId != 0)
+                {
+
+                    View daySpinner = datePicker.findViewById(daySpinnerId);
+                    if (daySpinner != null)
+                    {
+                        Log.v("Hola", "QUE WEA");
+                        daySpinner.setVisibility(View.VISIBLE);
+                    }
+                }
+
+                int monthSpinnerId = Resources.getSystem().getIdentifier("month", "id", "android");
+                if (monthSpinnerId != 0)
+                {
+                    View monthSpinner = datePicker.findViewById(monthSpinnerId);
+                    if (monthSpinner != null)
+                    {
+                        monthSpinner.setVisibility(View.VISIBLE);
+                    }
+                }
+
+                int yearSpinnerId = Resources.getSystem().getIdentifier("year", "id", "android");
+                if (yearSpinnerId != 0)
+                {
+                    View yearSpinner = datePicker.findViewById(yearSpinnerId);
+                    if (yearSpinner != null)
+                    {
+                        yearSpinner.setVisibility(View.GONE);
+                    }
+                }
+            }else { //Older SDK versions
+                Field f[] = dialog.getClass().getDeclaredFields();
+                for (Field field : f)
+                {
+                    if(field.getName().equals("mDayPicker") || field.getName().equals("mDaySpinner"))
+                    {
+                        field.setAccessible(true);
+                        Object dayPicker = null;
+                        try {
+                            dayPicker = field.get(dialog);
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                        ((View) dayPicker).setVisibility(View.GONE);
+                    }
+
+                    if(field.getName().equals("mMonthPicker") || field.getName().equals("mMonthSpinner"))
+                    {
+                        field.setAccessible(true);
+                        Object monthPicker = null;
+                        try {
+                            monthPicker = field.get(dialog);
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                        ((View) monthPicker).setVisibility(View.VISIBLE);
+                    }
+
+                    if(field.getName().equals("mYearPicker") || field.getName().equals("mYearSpinner"))
+                    {
+                        field.setAccessible(true);
+                        Object yearPicker = null;
+                        try {
+                            yearPicker = field.get(dialog);
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                        ((View) yearPicker).setVisibility(View.GONE);
+                    }
+                }
+            }
+            return dialog;
+        }
+
+        public void onDateSet(DatePicker view, int year, int month, int day) {
+
+        }
+
+        @Override
+        public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+            int month_i = monthOfYear + 1;
+            Log.e("selected month:", Integer.toString(month_i));
+        }
     }
 }
