@@ -22,14 +22,11 @@ public class Event implements Parcelable{
     private int eventMonth;
     @ColumnInfo(name = "event_day")
     private int eventDay;
-    @ColumnInfo(name = "peridiocity")
-    private int peridiocity; // 1 = every day, 2 = every month, 3 = every year
 
-    public Event(String eventName, int eventYear, int eventMonth, int eventDay, int peridiocity){
+    public Event(String eventName, int eventYear, int eventMonth, int eventDay){
         this.eventName = eventName;
         this.eventMonth = eventMonth;
         this.eventDay = eventDay;
-        this.peridiocity = peridiocity;
         this.eventYear = eventYear;
     }
 
@@ -39,7 +36,6 @@ public class Event implements Parcelable{
         eventYear = in.readInt();
         eventMonth = in.readInt();
         eventDay = in.readInt();
-        peridiocity = in.readInt();
     }
 
     public static final Creator<Event> CREATOR = new Creator<Event>() {
@@ -74,9 +70,6 @@ public class Event implements Parcelable{
         return this.eventDay;
     }
 
-    public int getPeridiocity(){
-        return this.peridiocity;
-    }
 
     public void setEventId(int eventId){
         this.eventId = eventId;
@@ -98,9 +91,7 @@ public class Event implements Parcelable{
         this.eventDay = eventDay;
     }
 
-    public void setPeridiocity(int peridiocity){
-        this.peridiocity = peridiocity;
-    }
+
 
 
     @Override
@@ -116,6 +107,5 @@ public class Event implements Parcelable{
         dest.writeInt(eventYear);
         dest.writeInt(eventMonth);
         dest.writeInt(eventDay);
-        dest.writeInt(peridiocity);
     }
 }
