@@ -3,6 +3,7 @@ package com.example.diego.efemerides;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -23,17 +24,20 @@ import android.widget.NumberPicker;
 import java.lang.reflect.Field;
 import java.util.Calendar;
 
-public class NuevoDiaActivity extends AppCompatActivity implements View.OnClickListener {
+public class NuevoDiaActivity extends AppCompatActivity {
 
     public static final int DIA = 0;
     public static final int DIA_HIST = 1;
     public static final int DIA_MOVIL = 2;
     public static final int CUMPLE = 3;
-    public static String[] meses = { "Enero", "Fenrero", "Marzo","Abril","Mayo", "Junio", "Julio",
+    public static final int dimension = 2;
+    public static String[] meses = { "Enero", "Febrero", "Marzo","Abril","Mayo", "Junio", "Julio",
             "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
     public static String[] dias = { "Lunes", "Martes", "Miercoles","Jueves",
             "Viernes", "Sabado", "Domingo" };
     public static String[] posciones = { "1er", "2do", "3er","4to" };
+    public static int[] diasMes = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    public static int[] diasMesBisiesto = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
     private int item;
 
@@ -73,21 +77,22 @@ public class NuevoDiaActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
-    @Override
-    public void onClick(View v) {
-
-    }
-
     public void showDatePickerDialog(View v) {
         DialogFragment newFragment;
         switch (item){
             case NuevoDiaActivity.DIA_HIST:
-                newFragment = new DatePickerFragmentHist();
+                newFragment = new DatePickerMonthDialogFragment();
+                Bundle args = new Bundle();
+                args.putBoolean("year",true);
+                newFragment.setArguments(args);
                 newFragment.show(getSupportFragmentManager(), "datePicker");
                 break;
             case NuevoDiaActivity.CUMPLE:
             case NuevoDiaActivity.DIA:
-                newFragment = new DatePickerFragmentDay();
+                newFragment = new DatePickerMonthDialogFragment();
+                Bundle arg = new Bundle();
+                arg.putBoolean("year",false);
+                newFragment.setArguments(arg);
                 newFragment.show(getSupportFragmentManager(), "datePicker");
                 break;
             case NuevoDiaActivity.DIA_MOVIL:
@@ -99,7 +104,7 @@ public class NuevoDiaActivity extends AppCompatActivity implements View.OnClickL
     }
 
     public void showYearPickerDialog(View v){
-        DialogFragment newFragment = new DatePickerFragmentYear();
+        DialogFragment newFragment = new DatePickerYearDialogFragment();
         newFragment.show(getSupportFragmentManager(), "datePicker");
     }
 
@@ -118,7 +123,7 @@ public class NuevoDiaActivity extends AppCompatActivity implements View.OnClickL
     }
 
     public void setMovil(int pos, int day, int month){
-        fecha.setText(posciones[pos]+" "+dias[day]+" "+meses[day]);
+        fecha.setText(posciones[pos]+" "+dias[day]+" "+meses[month]);
         setDate = true;
     }
 
@@ -127,275 +132,77 @@ public class NuevoDiaActivity extends AppCompatActivity implements View.OnClickL
         setDate = true;
     }
 
+    public static class DatePickerYearDialogFragment extends DialogFragment implements DialogInterface.OnClickListener{
 
-    public static class DatePickerFragmentHist extends DialogFragment
-            implements DatePickerDialog.OnDateSetListener, DatePicker.OnDateChangedListener {
+        private AlertDialog alertDialog;
+        private NuevoDiaActivity activity;
+        private NumberPicker pickerYear;
 
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Use the current date as the default date in the picker
-            final Calendar c = Calendar.getInstance();
+        public AlertDialog createDayMonthView(){
+            Calendar c = Calendar.getInstance();
             int year = c.get(Calendar.YEAR);
-            int month = c.get(Calendar.MONTH);
-            int day = c.get(Calendar.DAY_OF_MONTH);
-            // Create a new instance of DatePickerDialog and return it
-            DatePickerDialog dialog = new DatePickerDialog(getActivity(), this, year, month, day);
 
-            dialog.getDatePicker().setMaxDate(c.getTimeInMillis());
-            c.set(1,1,1);
-            dialog.getDatePicker().setMinDate(c.getTimeInMillis());
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.setTitle("Año");
 
-            DatePicker datePicker = dialog.getDatePicker();
-            datePicker.init(datePicker.getYear(),datePicker.getMonth(),datePicker.getDayOfMonth(),this);
-            return dialog;
+            pickerYear = new NumberPicker(activity);
+            pickerYear.setMinValue(1900);
+            pickerYear.setMaxValue(year);
+            pickerYear.setValue(year);
+
+            builder.setPositiveButton("Aceptar",this);
+            builder.setNegativeButton("Cancelar",this);
+
+            builder.setView(pickerYear);
+
+            alertDialog = builder.create();
+            return alertDialog;
         }
 
-        public void onDateSet(DatePicker view, int year, int month, int day) {
-            NuevoDiaActivity activity = (NuevoDiaActivity)getActivity();
-            activity.setHistoricDate(year,month+1,day);
-        }
-
-        @Override
-        public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        }
-    }
-
-    public static class DatePickerFragmentDay extends DialogFragment
-            implements DatePickerDialog.OnDateSetListener, DatePicker.OnDateChangedListener {
-
-        @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Use the current date as the default date in the picker
-            final Calendar c = Calendar.getInstance();
-            int year = c.get(Calendar.YEAR);
-            int month = c.get(Calendar.MONTH);
-            int day = c.get(Calendar.DAY_OF_MONTH);
+            activity = (NuevoDiaActivity)getActivity();
+            alertDialog = createDayMonthView();
+            return alertDialog;
+        }
 
-            // Create a new instance of DatePickerDialog and return it
-            DatePickerDialog dialog = new DatePickerDialog(getActivity(), android.R.style.Theme_Holo_Light_Dialog,this, year, month, day);
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            dialog.setTitle("Fecha");
-            DatePicker datePicker = dialog.getDatePicker();
-            datePicker.init(datePicker.getYear(),datePicker.getMonth(),datePicker.getDayOfMonth(),this);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-
-                int daySpinnerId = Resources.getSystem().getIdentifier("day", "id", "android");
-                if (daySpinnerId != 0)
-                {
-
-                    View daySpinner = datePicker.findViewById(daySpinnerId);
-                    if (daySpinner != null)
-                    {
-                        daySpinner.setVisibility(View.VISIBLE);
-                    }
-                }
-
-                int monthSpinnerId = Resources.getSystem().getIdentifier("month", "id", "android");
-                if (monthSpinnerId != 0)
-                {
-                    View monthSpinner = datePicker.findViewById(monthSpinnerId);
-                    if (monthSpinner != null)
-                    {
-                        monthSpinner.setVisibility(View.VISIBLE);
-                    }
-                }
-
-                int yearSpinnerId = Resources.getSystem().getIdentifier("year", "id", "android");
-                if (yearSpinnerId != 0)
-                {
-                    View yearSpinner = datePicker.findViewById(yearSpinnerId);
-                    if (yearSpinner != null)
-                    {
-                        yearSpinner.setVisibility(View.GONE);
-                    }
-                }
-            }else { //Older SDK versions
-                Field f[] = dialog.getClass().getDeclaredFields();
-                for (Field field : f)
-                {
-                    if(field.getName().equals("mDayPicker") || field.getName().equals("mDaySpinner"))
-                    {
-                        field.setAccessible(true);
-                        Object dayPicker = null;
-                        try {
-                            dayPicker = field.get(dialog);
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                        ((View) dayPicker).setVisibility(View.VISIBLE);
-                    }
-
-                    if(field.getName().equals("mMonthPicker") || field.getName().equals("mMonthSpinner"))
-                    {
-                        field.setAccessible(true);
-                        Object monthPicker = null;
-                        try {
-                            monthPicker = field.get(dialog);
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                        ((View) monthPicker).setVisibility(View.VISIBLE);
-                    }
-
-                    if(field.getName().equals("mYearPicker") || field.getName().equals("mYearSpinner"))
-                    {
-                        field.setAccessible(true);
-                        Object yearPicker = null;
-                        try {
-                            yearPicker = field.get(dialog);
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                        ((View) yearPicker).setVisibility(View.GONE);
-                    }
-                }
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which){
+                case DialogInterface.BUTTON_NEGATIVE:
+                    break;
+                case DialogInterface.BUTTON_POSITIVE:
+                    activity.setYear(pickerYear.getValue());
+                    break;
             }
-            return dialog;
-        }
-
-        public void onDateSet(DatePicker view, int year, int month, int day) {
-            NuevoDiaActivity activity = (NuevoDiaActivity)getActivity();
-            activity.setDate(month+1,day);
-        }
-
-        @Override
-        public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        }
-    }
-
-    public static class DatePickerFragmentYear extends DialogFragment
-            implements DatePickerDialog.OnDateSetListener, DatePicker.OnDateChangedListener {
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Use the current date as the default date in the picker
-            final Calendar c = Calendar.getInstance();
-            int year = c.get(Calendar.YEAR);
-            int month = c.get(Calendar.MONTH);
-            int day = c.get(Calendar.DAY_OF_MONTH);
-
-            // Create a new instance of DatePickerDialog and return it
-            DatePickerDialog dialog = new DatePickerDialog(getActivity(), android.R.style.Theme_Holo_Light_Dialog,this, year, month, day);
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            dialog.setTitle("Año");
-            DatePicker datePicker = dialog.getDatePicker();
-            datePicker.init(datePicker.getYear(),datePicker.getMonth(),datePicker.getDayOfMonth(),this);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-
-                int daySpinnerId = Resources.getSystem().getIdentifier("day", "id", "android");
-                if (daySpinnerId != 0)
-                {
-
-                    View daySpinner = datePicker.findViewById(daySpinnerId);
-                    if (daySpinner != null)
-                    {
-                        daySpinner.setVisibility(View.GONE);
-                    }
-                }
-
-                int monthSpinnerId = Resources.getSystem().getIdentifier("month", "id", "android");
-                if (monthSpinnerId != 0)
-                {
-                    View monthSpinner = datePicker.findViewById(monthSpinnerId);
-                    if (monthSpinner != null)
-                    {
-                        monthSpinner.setVisibility(View.GONE);
-                    }
-                }
-
-                int yearSpinnerId = Resources.getSystem().getIdentifier("year", "id", "android");
-                if (yearSpinnerId != 0)
-                {
-                    View yearSpinner = datePicker.findViewById(yearSpinnerId);
-                    if (yearSpinner != null)
-                    {
-                        yearSpinner.setVisibility(View.VISIBLE);
-                    }
-                }
-            }else { //Older SDK versions
-                Field f[] = dialog.getClass().getDeclaredFields();
-                for (Field field : f)
-                {
-                    if(field.getName().equals("mDayPicker") || field.getName().equals("mDaySpinner"))
-                    {
-                        field.setAccessible(true);
-                        Object dayPicker = null;
-                        try {
-                            dayPicker = field.get(dialog);
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                        ((View) dayPicker).setVisibility(View.GONE);
-                    }
-
-                    if(field.getName().equals("mMonthPicker") || field.getName().equals("mMonthSpinner"))
-                    {
-                        field.setAccessible(true);
-                        Object monthPicker = null;
-                        try {
-                            monthPicker = field.get(dialog);
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                        ((View) monthPicker).setVisibility(View.GONE);
-                    }
-
-                    if(field.getName().equals("mYearPicker") || field.getName().equals("mYearSpinner"))
-                    {
-                        field.setAccessible(true);
-                        Object yearPicker = null;
-                        try {
-                            yearPicker = field.get(dialog);
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                        ((View) yearPicker).setVisibility(View.VISIBLE);
-                    }
-                }
-            }
-            return dialog;
-        }
-
-        public void onDateSet(DatePicker view, int year, int month, int day) {
-            NuevoDiaActivity activity = (NuevoDiaActivity)getActivity();
-            activity.setYear(year);
-        }
-
-        @Override
-        public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
         }
     }
 
     public static class DatePickerMovilDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 
-        private NumberPicker picker,pickerDay,pickerMonth,pickerAbsoluteDay;
-        private AlertDialog.Builder builder;
-        private LinearLayout LL;
         private Boolean modo;
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            modo = true;
-            LL = new LinearLayout(getContext());
+        private AlertDialog alertDialog;
+        private NuevoDiaActivity activity;
+        private Context context;
+        private NumberPicker picker, pickerDay, pickerMonth, pickerAbsoluteDay;
+
+        public AlertDialog createDayView(){
+            LinearLayout LL = new LinearLayout(context);
             LL.setOrientation(LinearLayout.HORIZONTAL);
-            // Use the Builder class for convenient dialog construction
-            builder = new AlertDialog.Builder(getActivity());
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle("Numero, Dia y Mes");
 
-            pickerAbsoluteDay = new NumberPicker(getActivity());
-            pickerAbsoluteDay.setMinValue(1);
-            pickerAbsoluteDay.setMaxValue(365);
-
-            picker = new NumberPicker(getActivity());
+            picker = new NumberPicker(activity);
             picker.setMinValue(0);
             picker.setMaxValue(3);
             picker.setDisplayedValues( posciones );
 
-            pickerDay = new NumberPicker(getActivity());
+            pickerDay = new NumberPicker(activity);
             pickerDay.setMinValue(0);
             pickerDay.setMaxValue(6);
             pickerDay.setDisplayedValues( dias );
 
-            pickerMonth = new NumberPicker(getActivity());
+            pickerMonth = new NumberPicker(activity);
             pickerMonth.setMinValue(0);
             pickerMonth.setMaxValue(11);
             pickerMonth.setDisplayedValues( meses );
@@ -404,8 +211,7 @@ public class NuevoDiaActivity extends AppCompatActivity implements View.OnClickL
             builder.setNegativeButton("Cancelar",this);
             builder.setNeutralButton("Cambiar Modo", this);
 
-
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(50, 50);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dimension, dimension);
             params.gravity = Gravity.CENTER;
 
             LinearLayout.LayoutParams picerParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -424,8 +230,40 @@ public class NuevoDiaActivity extends AppCompatActivity implements View.OnClickL
 
             builder.setView(LL);
 
-            // Create the AlertDialog object and return it
-            return builder.create();
+            alertDialog = builder.create();
+            return alertDialog;
+
+        }
+
+        public AlertDialog createAbsoluteDayView(){
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.setTitle("Dia del año");
+
+            pickerAbsoluteDay = new NumberPicker(activity);
+            pickerAbsoluteDay.setMinValue(1);
+            pickerAbsoluteDay.setMaxValue(365);
+
+            builder.setPositiveButton("Aceptar",this);
+            builder.setNegativeButton("Cancelar",this);
+            builder.setNeutralButton("Cambiar Modo", this);
+
+            builder.setView(pickerAbsoluteDay);
+
+            alertDialog = builder.create();
+            return alertDialog;
+
+        }
+
+
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            activity = (NuevoDiaActivity)getActivity();
+            context = getContext();
+            modo = true;
+
+            alertDialog = createDayView();
+
+            return alertDialog;
         }
 
         private void switchMode(){
@@ -438,7 +276,6 @@ public class NuevoDiaActivity extends AppCompatActivity implements View.OnClickL
                 case DialogInterface.BUTTON_NEGATIVE:
                     break;
                 case DialogInterface.BUTTON_POSITIVE:
-                    NuevoDiaActivity activity = (NuevoDiaActivity)getActivity();
                     if(modo){
                         activity.setMovil(picker.getValue(),pickerDay.getValue(),pickerMonth.getValue());
                     }else{
@@ -449,17 +286,182 @@ public class NuevoDiaActivity extends AppCompatActivity implements View.OnClickL
                 case DialogInterface.BUTTON_NEUTRAL:
                     switchMode();
                     if(modo){
-                        builder.setView(LL);
-                        builder.create();
-                        builder.show();
+                        alertDialog.dismiss();
+                        alertDialog = createDayView();
+                        alertDialog.show();
                     }else{
-                        builder.setView(pickerAbsoluteDay);
-                        builder.create();
-                        builder.show();
+                        alertDialog.dismiss();
+                        alertDialog = createAbsoluteDayView();
+                        alertDialog.show();
+                    }
+                    break;
+            }
+        }
+    }
+
+    public static class DatePickerMonthDialogFragment extends DialogFragment implements DialogInterface.OnClickListener, NumberPicker.OnValueChangeListener {
+
+        private Boolean withYear;
+        private AlertDialog alertDialog;
+        private NuevoDiaActivity activity;
+        private Context context;
+        private NumberPicker pickerDay, pickerMonth;
+        private NumberPicker pickerYear;
+        private int[] diasMesfragment;
+
+
+        public AlertDialog createDayMonthView(){
+
+            Calendar c = Calendar.getInstance();
+            int day = c.get(Calendar.DAY_OF_MONTH);
+            int month = c.get(Calendar.MONTH);
+            int year = c.get(Calendar.YEAR);
+            LinearLayout LL = new LinearLayout(context);
+            LL.setOrientation(LinearLayout.HORIZONTAL);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+
+            withYear = getArguments().getBoolean("year");
+            if(withYear){
+
+                if(esBisisesto(year)){
+                    diasMesfragment = diasMesBisiesto;
+                }else{
+                    diasMesfragment = diasMes;
+                }
+
+            }else{
+
+                diasMesfragment = diasMesBisiesto;
+            }
+
+            pickerMonth = new NumberPicker(activity);
+            pickerMonth.setMinValue(0);
+            pickerMonth.setMaxValue(11);
+            pickerMonth.setDisplayedValues( meses );
+            pickerMonth.setValue(month);
+            pickerMonth.setOnValueChangedListener(this);
+
+            pickerDay = new NumberPicker(activity);
+            pickerDay.setMinValue(1);
+            pickerDay.setMaxValue(diasMesfragment[month]);
+            pickerDay.setValue(day);
+            pickerDay.setOnValueChangedListener(this);
+
+            builder.setPositiveButton("Aceptar",this);
+            builder.setNegativeButton("Cancelar",this);
+
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dimension, dimension);
+            params.gravity = Gravity.CENTER;
+
+            LinearLayout.LayoutParams dayPicerParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            dayPicerParams.weight = 1;
+
+            LinearLayout.LayoutParams monthPicerParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            monthPicerParams.weight = 1;
+
+            LL.setLayoutParams(params);
+            LL.addView(pickerDay,dayPicerParams);
+            LL.addView(pickerMonth,monthPicerParams);
+
+            if(withYear){
+
+
+                pickerYear = new NumberPicker(activity);
+                pickerYear.setMinValue(0);
+                pickerYear.setMaxValue(year);
+                pickerYear.setValue(year);
+                pickerYear.setOnValueChangedListener(this);
+
+                builder.setTitle("Dia, Mes y Año");
+
+                LinearLayout.LayoutParams yearPicerParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                yearPicerParams.weight = 1;
+
+                LL.addView(pickerYear, yearPicerParams);
+            }else{
+                builder.setTitle("Dia y Mes");
+            }
+
+            builder.setView(LL);
+
+            alertDialog = builder.create();
+            return alertDialog;
+
+        }
+
+        public boolean esBisisesto(int year){
+            if(year % 400 == 0){
+                return true;
+            }else if(year % 4 == 0 && year % 100 != 0){
+                return true;
+            }else{
+                return false;
+            }
+        }
+
+
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            activity = (NuevoDiaActivity)getActivity();
+            context = getContext();
+            alertDialog = createDayMonthView();
+            return alertDialog;
+        }
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which){
+                case DialogInterface.BUTTON_NEGATIVE:
+                    break;
+                case DialogInterface.BUTTON_POSITIVE:
+                    if(withYear){
+                        activity.setHistoricDate(pickerYear.getValue(),pickerMonth.getValue() + 1, pickerDay.getValue());
+                    }else{
+                        activity.setDate(pickerMonth.getValue() + 1,pickerDay.getValue());
                     }
 
-
+                    break;
             }
+        }
+
+        @Override
+        public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+            if(picker == pickerDay){
+                if(oldVal == pickerDay.getMaxValue() && newVal == pickerDay.getMinValue()){
+                    //Aumentar mes
+                    int value = pickerMonth.getValue();
+                    if(value == pickerMonth.getMaxValue()){
+                        pickerMonth.setValue(pickerMonth.getMinValue());
+                    }else{
+                        pickerMonth.setValue(value + 1);
+                    }
+                }else if(oldVal == pickerDay.getMinValue() && newVal == pickerDay.getMaxValue()){
+                    //Disminuir mes
+                    int value = pickerMonth.getValue();
+                    if(value == pickerMonth.getMinValue()){
+                        pickerMonth.setValue(pickerMonth.getMaxValue());
+                    }else{
+                        pickerMonth.setValue(value - 1);
+                    }
+                }else if(oldVal == pickerDay.getMinValue() + 1 && newVal == pickerDay.getMinValue() + 2){
+                    int value = pickerMonth.getValue();
+                    pickerDay.setMaxValue(diasMesfragment[value]);
+                }else if(oldVal == pickerDay.getMinValue() + 2 && newVal == pickerDay.getMinValue() + 1){
+                    int value = pickerMonth.getValue();
+                    pickerDay.setMaxValue(diasMesfragment[value - 1]);
+                }
+            }else if(picker == pickerMonth ){
+                pickerDay.setMaxValue(diasMesfragment[newVal]);
+            }else if(picker == pickerYear){
+                Log.e("asd",""+newVal);
+                if(esBisisesto(newVal)){
+                    diasMesfragment = diasMesBisiesto;
+                }else{
+                    diasMesfragment = diasMes;
+                }
+                pickerDay.setMaxValue(diasMesfragment[pickerMonth.getValue()]);
+            }
+
         }
     }
 }
