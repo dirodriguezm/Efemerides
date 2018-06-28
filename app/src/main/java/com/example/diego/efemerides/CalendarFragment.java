@@ -139,7 +139,7 @@ public class CalendarFragment extends Fragment {
                 for (int i = calendarView.getMinimumDate().getYear(); i <= calendarView.getMaximumDate().getYear(); i++) {
                     eventDate.set(Calendar.DAY_OF_WEEK, event.getEventDay());
                     eventDate.set(Calendar.DAY_OF_WEEK_IN_MONTH,event.getEventNumber());
-                    eventDate.set(Calendar.MONTH, event.getEventMonth());
+                    eventDate.set(Calendar.MONTH, event.getEventMonth() -1);
                     eventDate.set(Calendar.YEAR, i);
                     calendarDays.add(CalendarDay.from(eventDate));
                     calendarDayDayMonthEventListMultimap.put(CalendarDay.from(eventDate),event);
