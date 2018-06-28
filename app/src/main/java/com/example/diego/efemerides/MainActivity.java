@@ -71,7 +71,6 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
                 }
                 retrievedEvents = db.eventDao().getAll();
                 ArrayList<? extends Parcelable> test = (ArrayList<? extends Parcelable>) retrievedEvents;
-                Log.d("EVENTS BEFORE", test.size()+"");
                 Bundle args = new Bundle();
                 args.putParcelableArrayList(calendarFragment.ARG_EVENTS, (ArrayList<? extends Parcelable>) retrievedEvents);
                 calendarFragment.setArguments(args);
@@ -124,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
                         name += splittedLine[i] + " ";
                     }
                 }
-                events.add(new Event(name, year, month, day, 1));
+                events.add(new Event(name, year, month, day));
             }
             return events;
         } catch (IOException e) {
@@ -180,7 +179,6 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
             InformationFragment newFragment = new InformationFragment();
             Bundle args = new Bundle();
             args.putParcelable(InformationFragment.ARG_DATE, date);
-            Log.d("EVENTS PASSED TO INFO", events.toString());
             ArrayList<Event> events1 = new ArrayList<>();
             for (Event event : events){
                 events1.add(event);

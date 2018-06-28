@@ -73,6 +73,7 @@
         android:src="@drawable/ic_done_white_24dp"
         android:layout_margin="@dimen/fab_margin"
         app:fabSize="normal"
+        android:onClick="aceptar"
         />
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/cancel"
@@ -82,6 +83,7 @@
         android:src="@drawable/ic_close_white_24dp"
         android:layout_margin="@dimen/fab_margin"
         app:fabSize="normal"
+        android:onClick="cancelar"
         />
 </android.support.design.widget.CoordinatorLayout>
 

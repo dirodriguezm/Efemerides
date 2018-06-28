@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -47,9 +48,16 @@ public class NuevoDiaActivity extends AppCompatActivity implements TextView.OnEd
 
     private boolean setDate;
     private boolean setName;
+    private boolean setYear;
 
     private Button fecha, año;
     private EditText nombre;
+
+    private FloatingActionButton botonAceptar;
+    private FloatingActionButton botonCancelar;
+
+    private CalendarDay date;
+    private int year;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +90,14 @@ public class NuevoDiaActivity extends AppCompatActivity implements TextView.OnEd
                 break;
             default:
                 break;
+        }
+        botonAceptar = findViewById(R.id.done);
+        botonCancelar = findViewById(R.id.cancel);
+    }
+
+    public void aceptar(View v){
+        if(setDate && setName){
+
         }
     }
 
@@ -119,26 +135,40 @@ public class NuevoDiaActivity extends AppCompatActivity implements TextView.OnEd
     public void setHistoricDate(int year, int month, int day){
         fecha.setText(day+"/"+month+"/"+year);
         setDate = true;
+        this.date = CalendarDay.from(year, month, day);
     }
 
     public void setDate(int month, int day){
         fecha.setText(day+"/"+month);
         setDate = true;
+        if(setYear) date = CalendarDay.from(year, month, day);
+        else date = CalendarDay.from(0,month,day);
     }
 
     public void setYear(int year){
         año.setText(Integer.toString(year));
+        this.year = year;
+        setYear = true;
     }
 
     public void setMovil(int pos, int day, int month){
         fecha.setText(posciones[pos]+" "+dias[day]+" "+meses[month]);
+        //date = calcularFecha(pos,day,month);
         setDate = true;
     }
 
     public void setMovilDay(int day){
         fecha.setText("Dia "+day);
+        //date = calcularFecha(day);
         setDate = true;
     }
+
+    /*public CalendarDay calcularFecha(int pos, int day, int month){
+
+    }
+    public CalendarDay calcularFecha(int day){
+
+    }*/
 
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
