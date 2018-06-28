@@ -2,7 +2,6 @@ package com.example.diego.efemerides;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -10,16 +9,18 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CalendarView;
 
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
-
+import java.util.Collection;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -38,6 +39,9 @@ public class CalendarFragment extends Fragment {
     public static String ARG_EVENTS = "events";
 
     private ArrayList<Event> events;
+
+    private ListMultimap< CalendarDay, Event> calendarDayEventMultimap;
+
 
     public CalendarFragment() {
         // Required empty public constructor
@@ -88,8 +92,7 @@ public class CalendarFragment extends Fragment {
             }
         });
         if(events != null) {
-
-
+            calendarDayEventMultimap = MultimapBuilder.hashKeys().arrayListValues().build();
             for (Event event : events) {
                 Calendar eventDate = Calendar.getInstance();
                 ArrayList<CalendarDay> calendarDays = new ArrayList<>();
@@ -100,7 +103,7 @@ public class CalendarFragment extends Fragment {
                     eventDate.set(i, eventMonth - 1, eventDay);
                     Log.d("SETTING", i + "-" + eventMonth + "-" + eventDay);
                     calendarDays.add(CalendarDay.from(eventDate));
-
+                    calendarDayEventMultimap.put(CalendarDay.from(eventDate),event);
                 }
                 calendarView.addDecorator(new EventDecorator(Color.RED, calendarDays));
             }
@@ -110,7 +113,7 @@ public class CalendarFragment extends Fragment {
 
     private void onDateChange(CalendarDay date) {
         if (mListener != null){
-            mListener.onFragmentInteraction(date);
+            mListener.onFragmentInteraction( date, calendarDayEventMultimap.get(date));
         }
     }
 
@@ -143,6 +146,6 @@ public class CalendarFragment extends Fragment {
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onFragmentInteraction(CalendarDay date);
+        void onFragmentInteraction(CalendarDay date,Collection<Event> events);
     }
 }

@@ -4,12 +4,18 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.prolificinteractive.materialcalendarview.CalendarDay;
+
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 
 
@@ -24,17 +30,16 @@ import java.util.Date;
 public class InformationFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     public static String ARG_DATE = "date";
+    public static String ARG_EVENT = "event";
     private TextView textView;
-    Calendar date = Calendar.getInstance();
-    private String[] monthName = {"Enero", "Febrero",
-            "Marzo", "Abril", "Mayo", "Junio", "Julio",
-            "Agosto", "Septiembre", "Octubre", "Noviembre",
-            "Diciembre"};
-
-    private String dateParam = date.get(Calendar.DAY_OF_MONTH) + " de " + monthName[date.get(Calendar.MONTH)] + " de " + date.get(Calendar.YEAR);
-
+    private CalendarDay dateParam = CalendarDay.from(Calendar.getInstance());
+    private Collection<Event> events;
     private OnFragmentInteractionListener mListener;
 
+    private RecyclerView recyclerView;
+    private RecyclerView.Adapter adapter;
+    private RecyclerView.LayoutManager layoutManager;
+    private String[] monthNames = {"Enero","Febrero", "Marzo","Abril","Mayo","Junio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"};
     public InformationFragment() {
         // Required empty public constructor
     }
@@ -59,7 +64,8 @@ public class InformationFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            dateParam = getArguments().getString(ARG_DATE);
+            dateParam = getArguments().getParcelable(ARG_DATE);
+            events = getArguments().getParcelableArrayList(ARG_EVENT);
         }
     }
 
@@ -69,7 +75,13 @@ public class InformationFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_information, container, false);
         textView = view.findViewById(R.id.fecha_titulo);
-        textView.setText(dateParam);
+        textView.setText(dateParam.getDay() + " de " + monthNames[dateParam.getMonth()] + " de " + dateParam.getYear());
+        recyclerView = view.findViewById(R.id.recycler_view);
+        recyclerView.setHasFixedSize(true);
+        layoutManager = new LinearLayoutManager(this.getContext());
+        recyclerView.setLayoutManager(layoutManager);
+        adapter = new EventListAdapter((ArrayList<Event>) events, dateParam);
+        recyclerView.setAdapter(adapter);
         return view;
     }
 
@@ -97,13 +109,20 @@ public class InformationFragment extends Fragment {
         mListener = null;
     }
 
-    public void setText(String text) {
+    public void update(String text, Collection<Event> events) {
         textView.setText(text);
+        ArrayList<Event> events1 = new ArrayList<>();
+        for (Event event : events){
+            events1.add(event);
+        }
+        adapter = new EventListAdapter(events1, dateParam);
+        recyclerView.setAdapter(adapter);
     }
 
     public String getText(){
         return (String) textView.getText();
     }
+
 
     /**
      * This interface must be implemented by activities that contain this

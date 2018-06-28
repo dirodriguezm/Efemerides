@@ -34,6 +34,7 @@ import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -44,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
             "Marzo", "Abril", "Mayo", "Junio", "Julio",
             "Agosto", "Septiembre", "Octubre", "Noviembre",
             "Diciembre"};
+    private AppDatabase db;
+    private List<Event> retrievedEvents;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,10 +59,10 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
         calendarFragment = new CalendarFragment();
 
 
-        final AppDatabase db = AppDatabase.getAppDatabase(this);
+        db = AppDatabase.getAppDatabase(this);
         new Thread(new Runnable() {
             public void run() {
-                List<Event> retrievedEvents = db.eventDao().getAll();
+                retrievedEvents = db.eventDao().getAll();
                 if(retrievedEvents.size() == 0) {
                     ArrayList<Event> events = createEventsFromFile();
                     for (Event event : events) {
@@ -163,18 +166,26 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
     }
 
     @Override
-    public void onFragmentInteraction(CalendarDay date) {
+    public void onFragmentInteraction(CalendarDay date, Collection<Event> events) {
+
+
         if(findViewById(R.id.fragment_container2) != null) {
             InformationFragment informationFragment = (InformationFragment) getSupportFragmentManager().findFragmentByTag("information");
             if(informationFragment != null){
-                informationFragment.setText(date.getDay() + " de " + monthName[date.getMonth()] + " de " + date.getYear());
+                informationFragment.update(date.getDay() + " de " + monthName[date.getMonth() -1] + " de " + date.getYear(), events);
             }
         }
 
         else{
             InformationFragment newFragment = new InformationFragment();
             Bundle args = new Bundle();
-            args.putString(InformationFragment.ARG_DATE, date.getDay() + " de " + monthName[date.getMonth()] + " de " + date.getYear());
+            args.putParcelable(InformationFragment.ARG_DATE, date);
+            Log.d("EVENTS PASSED TO INFO", events.toString());
+            ArrayList<Event> events1 = new ArrayList<>();
+            for (Event event : events){
+                events1.add(event);
+            }
+            args.putParcelableArrayList(InformationFragment.ARG_EVENT, events1);
             newFragment.setArguments(args);
 
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
