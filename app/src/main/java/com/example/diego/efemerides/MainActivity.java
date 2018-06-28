@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.DatePicker;
+import android.widget.NumberPicker;
 
 
 import com.prolificinteractive.materialcalendarview.CalendarDay;
@@ -91,6 +92,44 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
                 fragmentTransaction.commit();
             }
         }).start();
+
+        Intent intent = getIntent();
+        if(intent.hasExtra(NuevoDiaActivity.TIPO)){
+            int tipo = intent.getIntExtra(NuevoDiaActivity.TIPO,-1);
+            int day, month, year,pos;
+            switch (tipo){
+                case NuevoDiaActivity.DIA:
+                    day = intent.getIntExtra(NuevoDiaActivity.DAY, 0);
+                    month = intent.getIntExtra(NuevoDiaActivity.MONTH, 0);
+
+                    break;
+                case NuevoDiaActivity.DIA_HIST:
+                    day = intent.getIntExtra(NuevoDiaActivity.DAY, 0);
+                    month = intent.getIntExtra(NuevoDiaActivity.MONTH, 0);
+                    year = intent.getIntExtra(NuevoDiaActivity.YEAR, 0);
+
+                    break;
+                case NuevoDiaActivity.DIA_MOVIL:
+                    day = intent.getIntExtra(NuevoDiaActivity.DAY,0);
+                    Boolean setMovil = intent.getBooleanExtra(NuevoDiaActivity.SET_MOVIL,false);
+                    if(setMovil){
+                        month = intent.getIntExtra(NuevoDiaActivity.MONTH,0);
+                        pos = intent.getIntExtra(NuevoDiaActivity.POS,0);
+                    }
+
+                    break;
+                case NuevoDiaActivity.CUMPLE:
+                    day = intent.getIntExtra(NuevoDiaActivity.DAY, 0);
+                    month = intent.getIntExtra(NuevoDiaActivity.MONTH, 0);
+                    Boolean setYear = intent.getBooleanExtra(NuevoDiaActivity.SET_YEAR, false);
+                    if(setYear){
+                        year = intent.getIntExtra(NuevoDiaActivity.YEAR, 0);
+                    }
+                    break;
+            }
+            Log.e("tipo",""+tipo);
+        }
+
 
 
     }
