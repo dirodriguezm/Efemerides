@@ -210,10 +210,7 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
 
     }
 
-    public void showDatePickerDialog(View v) {
-        DialogFragment newFragment = new DatePickerFragment();
-        newFragment.show(getSupportFragmentManager(), "datePicker");
-    }
+
 
     public void showMenu(View v) {
         PopupMenu popup = new PopupMenu(this, v);
@@ -251,114 +248,5 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
     }
 
 
-    public static class DatePickerFragment extends DialogFragment
-            implements DatePickerDialog.OnDateSetListener, DatePicker.OnDateChangedListener {
 
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Use the current date as the default date in the picker
-            final Calendar c = Calendar.getInstance();
-            int year = c.get(Calendar.YEAR);
-            int month = c.get(Calendar.MONTH);
-            int day = c.get(Calendar.DAY_OF_MONTH);
-            //Locale spanish = new Locale("es", "ES");
-            //Locale.setDefault(spanish);
-
-            // Create a new instance of DatePickerDialog and return it
-            DatePickerDialog dialog = new DatePickerDialog(getActivity(), this, year, month, day);
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            dialog.setTitle("asd");
-            //dialog.getDatePicker().setMaxDate(c.getTimeInMillis());
-            //c.set(0,0,1);
-            //dialog.getDatePicker().setMinDate(c.getTimeInMillis());
-
-            DatePicker datePicker = dialog.getDatePicker();
-            datePicker.init(datePicker.getYear(),datePicker.getMonth(),datePicker.getDayOfMonth(),this);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-
-                int daySpinnerId = Resources.getSystem().getIdentifier("day", "id", "android");
-                if (daySpinnerId != 0)
-                {
-
-                    View daySpinner = datePicker.findViewById(daySpinnerId);
-                    if (daySpinner != null)
-                    {
-                        Log.v("Hola", "QUE WEA");
-                        daySpinner.setVisibility(View.VISIBLE);
-                    }
-                }
-
-                int monthSpinnerId = Resources.getSystem().getIdentifier("month", "id", "android");
-                if (monthSpinnerId != 0)
-                {
-                    View monthSpinner = datePicker.findViewById(monthSpinnerId);
-                    if (monthSpinner != null)
-                    {
-                        monthSpinner.setVisibility(View.VISIBLE);
-                    }
-                }
-
-                int yearSpinnerId = Resources.getSystem().getIdentifier("year", "id", "android");
-                if (yearSpinnerId != 0)
-                {
-                    View yearSpinner = datePicker.findViewById(yearSpinnerId);
-                    if (yearSpinner != null)
-                    {
-                        yearSpinner.setVisibility(View.GONE);
-                    }
-                }
-            }else { //Older SDK versions
-                Field f[] = dialog.getClass().getDeclaredFields();
-                for (Field field : f)
-                {
-                    if(field.getName().equals("mDayPicker") || field.getName().equals("mDaySpinner"))
-                    {
-                        field.setAccessible(true);
-                        Object dayPicker = null;
-                        try {
-                            dayPicker = field.get(dialog);
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                        ((View) dayPicker).setVisibility(View.GONE);
-                    }
-
-                    if(field.getName().equals("mMonthPicker") || field.getName().equals("mMonthSpinner"))
-                    {
-                        field.setAccessible(true);
-                        Object monthPicker = null;
-                        try {
-                            monthPicker = field.get(dialog);
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                        ((View) monthPicker).setVisibility(View.VISIBLE);
-                    }
-
-                    if(field.getName().equals("mYearPicker") || field.getName().equals("mYearSpinner"))
-                    {
-                        field.setAccessible(true);
-                        Object yearPicker = null;
-                        try {
-                            yearPicker = field.get(dialog);
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                        ((View) yearPicker).setVisibility(View.GONE);
-                    }
-                }
-            }
-            return dialog;
-        }
-
-        public void onDateSet(DatePicker view, int year, int month, int day) {
-
-        }
-
-        @Override
-        public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-            int month_i = monthOfYear + 1;
-            Log.e("selected month:", Integer.toString(month_i));
-        }
-    }
 }
