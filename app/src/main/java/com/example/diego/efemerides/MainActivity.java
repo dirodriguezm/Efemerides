@@ -48,6 +48,8 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
             "Diciembre"};
     private AppDatabase db;
     private List<Event> retrievedEvents;
+    private List<DayMonthEvent> retrievedDayMonthEvents;
+    private List<DayNumberEvent> retrievedDayNumberEvents;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,9 +73,14 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
                     }
                 }
                 retrievedEvents = db.eventDao().getAll();
-                ArrayList<? extends Parcelable> test = (ArrayList<? extends Parcelable>) retrievedEvents;
+                retrievedDayNumberEvents = db.dayNumberEventDao().getAll();
+                //retrievedDayNumberEvents.add(new DayNumberEvent("Test Dia",178));
+                retrievedDayMonthEvents = db.dayMonthEventDao().getAll();
+                retrievedDayMonthEvents.add(new DayMonthEvent("Test 2", 4, 4, 6)); //ultimo miercoles de junio
                 Bundle args = new Bundle();
                 args.putParcelableArrayList(calendarFragment.ARG_EVENTS, (ArrayList<? extends Parcelable>) retrievedEvents);
+                args.putParcelableArrayList(calendarFragment.ARG_DAY_NUMBER_EVENTS, (ArrayList<? extends Parcelable>) retrievedDayNumberEvents);
+                args.putParcelableArrayList(calendarFragment.ARG_DAY_MONTH_EVENTS, (ArrayList<? extends Parcelable>) retrievedDayMonthEvents);
                 calendarFragment.setArguments(args);
                 FragmentManager fragmentManager = getSupportFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -204,13 +211,13 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
     }
 
     @Override
-    public void onFragmentInteraction(CalendarDay date, Collection<Event> events) {
+    public void onFragmentInteraction(CalendarDay date, Collection<Event> events, Collection<DayMonthEvent> dayMonthEvents, Collection<DayNumberEvent> dayNumberEvents) {
 
 
         if(findViewById(R.id.fragment_container2) != null) {
             InformationFragment informationFragment = (InformationFragment) getSupportFragmentManager().findFragmentByTag("information");
             if(informationFragment != null){
-                informationFragment.update(date.getDay() + " de " + monthName[date.getMonth() -1] + " de " + date.getYear(), events);
+                informationFragment.update(date.getDay() + " de " + monthName[date.getMonth()] + " de " + date.getYear(), events, dayMonthEvents,dayNumberEvents);
             }
         }
 
@@ -222,7 +229,17 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
             for (Event event : events){
                 events1.add(event);
             }
+            ArrayList<DayMonthEvent> events2 = new ArrayList<>();
+            for (DayMonthEvent event : dayMonthEvents){
+                events2.add(event);
+            }
+            ArrayList<DayNumberEvent> events3 = new ArrayList<>();
+            for (DayNumberEvent event : dayNumberEvents){
+                events3.add(event);
+            }
             args.putParcelableArrayList(InformationFragment.ARG_EVENT, events1);
+            args.putParcelableArrayList(InformationFragment.ARG_DAY_MONTH_EVENT, events2);
+            args.putParcelableArrayList(InformationFragment.ARG_DAY_NUMBER_EVENT, events3);
             newFragment.setArguments(args);
 
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();

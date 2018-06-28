@@ -37,10 +37,16 @@ public class CalendarFragment extends Fragment {
     private OnFragmentInteractionListener mListener;
 
     public static String ARG_EVENTS = "events";
+    public static String ARG_DAY_NUMBER_EVENTS = "dayNumberEvents";
+    public static String ARG_DAY_MONTH_EVENTS = "dayMonthEvents";
 
     private ArrayList<Event> events;
+    private ArrayList<DayMonthEvent> dayMonthEvents;
+    private ArrayList<DayNumberEvent> dayNumberEvents;
 
     private ListMultimap< CalendarDay, Event> calendarDayEventMultimap;
+    private ListMultimap< CalendarDay, DayMonthEvent> calendarDayDayMonthEventListMultimap;
+    private ListMultimap< CalendarDay, DayNumberEvent> calendarDayDayNumberEventListMultimap;
 
 
     public CalendarFragment() {
@@ -68,6 +74,9 @@ public class CalendarFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             events = getArguments().getParcelableArrayList(ARG_EVENTS);
+            dayMonthEvents = getArguments().getParcelableArrayList(ARG_DAY_MONTH_EVENTS);
+            dayNumberEvents = getArguments().getParcelableArrayList(ARG_DAY_NUMBER_EVENTS);
+            Log.d("DAY EVENTS",dayMonthEvents.size()+"");
         }
         else{
             Log.d("EVENTS", "NULL");
@@ -101,9 +110,41 @@ public class CalendarFragment extends Fragment {
                 int eventDay = event.getEventDay();
                 for (int i = calendarView.getMinimumDate().getYear(); i <= calendarView.getMaximumDate().getYear(); i++) {
                     eventDate.set(i, eventMonth - 1, eventDay);
-                    Log.d("SETTING", i + "-" + eventMonth + "-" + eventDay);
                     calendarDays.add(CalendarDay.from(eventDate));
                     calendarDayEventMultimap.put(CalendarDay.from(eventDate),event);
+                }
+                calendarView.addDecorator(new EventDecorator(Color.RED, calendarDays));
+            }
+        }
+        if(dayNumberEvents != null) {
+            calendarDayDayNumberEventListMultimap = MultimapBuilder.hashKeys().arrayListValues().build();
+            for (DayNumberEvent event : dayNumberEvents) {
+                Calendar eventDate = Calendar.getInstance();
+                ArrayList<CalendarDay> calendarDays = new ArrayList<>();
+                for (int i = calendarView.getMinimumDate().getYear(); i <= calendarView.getMaximumDate().getYear(); i++) {
+                    eventDate.set(Calendar.YEAR, i);
+                    eventDate.set(Calendar.DAY_OF_YEAR,event.getEventNumber());
+                    calendarDays.add(CalendarDay.from(eventDate));
+                    calendarDayDayNumberEventListMultimap.put(CalendarDay.from(eventDate),event);
+                }
+                calendarView.addDecorator(new EventDecorator(Color.RED, calendarDays));
+            }
+        }
+        if(dayMonthEvents != null) {
+            calendarDayDayMonthEventListMultimap = MultimapBuilder.hashKeys().arrayListValues().build();
+            for (DayMonthEvent event : dayMonthEvents) {
+                Calendar eventDate = Calendar.getInstance();
+                ArrayList<CalendarDay> calendarDays = new ArrayList<>();
+
+                for (int i = calendarView.getMinimumDate().getYear(); i <= calendarView.getMaximumDate().getYear(); i++) {
+                    eventDate.set(Calendar.DAY_OF_WEEK, event.getEventDay());
+                    eventDate.set(Calendar.DAY_OF_WEEK_IN_MONTH,event.getEventNumber());
+                    eventDate.set(Calendar.MONTH, event.getEventMonth());
+                    eventDate.set(Calendar.YEAR, i);
+                    calendarDays.add(CalendarDay.from(eventDate));
+                    calendarDayDayMonthEventListMultimap.put(CalendarDay.from(eventDate),event);
+                    Log.d("PUT EVENT NAME",event.getEventName());
+                    Log.d("PUT EVENT DATE", CalendarDay.from(eventDate).toString());
                 }
                 calendarView.addDecorator(new EventDecorator(Color.RED, calendarDays));
             }
@@ -111,9 +152,10 @@ public class CalendarFragment extends Fragment {
         return view;
     }
 
+
     private void onDateChange(CalendarDay date) {
         if (mListener != null){
-            mListener.onFragmentInteraction( date, calendarDayEventMultimap.get(date));
+            mListener.onFragmentInteraction( date, calendarDayEventMultimap.get(date), calendarDayDayMonthEventListMultimap.get(date), calendarDayDayNumberEventListMultimap.get(date));
         }
     }
 
@@ -145,7 +187,6 @@ public class CalendarFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(CalendarDay date,Collection<Event> events);
+        void onFragmentInteraction(CalendarDay date,Collection<Event> events, Collection<DayMonthEvent> dayMonthEvents, Collection<DayNumberEvent> dayNumberEvents);
     }
 }

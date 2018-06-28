@@ -14,7 +14,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.ViewHolder> {
-    private ArrayList<Event> events;
+    //private ArrayList<Event> events;
+    private ArrayList<EventMaster> events;
+    private ArrayList<DayMonthEvent> dayMonthEvents;
+    private ArrayList<DayNumberEvent> dayNumberEvents;
     private CalendarDay date;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -29,15 +32,24 @@ class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.ViewHolder>
         }
     }
 
-    public EventListAdapter(ArrayList<Event> events, CalendarDay date) {
-        if(events != null && date != null) {
-            this.events = events;
-            this.date = date;
+    public EventListAdapter(ArrayList<Event> events, ArrayList<DayMonthEvent> dayMonthEvents,ArrayList<DayNumberEvent> dayNumberEvents,  CalendarDay date) {
+        this.events = new ArrayList();
+        if(events != null) {
+            for (Event event : events) {
+                this.events.add(event);
+            }
         }
-        else{
-            this.events = new ArrayList<>();
-            this.date = CalendarDay.from(Calendar.getInstance());
+        if(dayMonthEvents != null) {
+            for (DayMonthEvent event : dayMonthEvents) {
+                this.events.add(event);
+            }
         }
+        if(dayNumberEvents != null) {
+            for (DayNumberEvent event : dayNumberEvents) {
+                this.events.add(event);
+            }
+        }
+        this.date = date;
     }
 
 
@@ -57,7 +69,6 @@ class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.ViewHolder>
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.eventName.setText(events.get(position).getEventName());
         if(events.get(position).getEventYear() != 0){
-            Log.d("DATE", ""+date.getYear());
             int thisYear = date.getYear();
             int years = thisYear - events.get(position).getEventYear();
             holder.eventDescription.setText("Aniversario N° " + years);

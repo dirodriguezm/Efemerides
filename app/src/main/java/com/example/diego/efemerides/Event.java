@@ -10,7 +10,7 @@ import android.os.Parcelable;
 import javax.annotation.Nullable;
 
 @Entity
-public class Event implements Parcelable{
+public class Event extends EventMaster implements Parcelable{
     @PrimaryKey(autoGenerate = true)
     private int eventId;
     @ColumnInfo(name="event_name")
@@ -24,6 +24,7 @@ public class Event implements Parcelable{
     private int eventDay;
 
     public Event(String eventName, int eventYear, int eventMonth, int eventDay){
+        super(eventName);
         this.eventName = eventName;
         this.eventMonth = eventMonth;
         this.eventDay = eventDay;
@@ -31,6 +32,7 @@ public class Event implements Parcelable{
     }
 
     protected Event(Parcel in) {
+        super(in.readString());
         eventId = in.readInt();
         eventName = in.readString();
         eventYear = in.readInt();
@@ -89,6 +91,10 @@ public class Event implements Parcelable{
 
     public void setEventDay(int eventDay){
         this.eventDay = eventDay;
+    }
+
+    public boolean isEvent(){
+        return true;
     }
 
 

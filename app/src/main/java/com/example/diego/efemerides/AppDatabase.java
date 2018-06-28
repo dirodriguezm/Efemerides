@@ -5,9 +5,11 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
-@Database(entities = {Event.class}, version = 1)
+@Database(entities = {Event.class, DayNumberEvent.class, DayMonthEvent.class}, version = 1)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract EventDao eventDao();
+    public abstract DayMonthEventDao dayMonthEventDao();
+    public abstract DayNumberEventDao dayNumberEventDao();
 
     private static AppDatabase INSTANCE;
 
