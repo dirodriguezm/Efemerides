@@ -2,9 +2,11 @@ package com.example.diego.efemerides;
 
 public class EventMaster {
     private String eventName;
+    private int isBirthDay;
 
     public EventMaster (String eventName){
         this.eventName = eventName;
+        this.isBirthDay = 0;
     }
 
     public String getEventName() {
@@ -17,5 +19,13 @@ public class EventMaster {
 
     public int getEventYear(){
         return 0;
+    }
+
+    public int getIsBirthDay() {
+        return isBirthDay;
+    }
+
+    public void setIsBirthDay(int isBirthDay) {
+        this.isBirthDay = isBirthDay;
     }
 }

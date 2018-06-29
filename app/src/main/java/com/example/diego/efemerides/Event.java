@@ -22,13 +22,18 @@ public class Event extends EventMaster implements Parcelable{
     private int eventMonth;
     @ColumnInfo(name = "event_day")
     private int eventDay;
+    @Nullable
+    @ColumnInfo(name="event_birthday")
+    private int eventBirthday;
 
-    public Event(String eventName, int eventYear, int eventMonth, int eventDay){
+    public Event(String eventName, int eventYear, int eventMonth, int eventDay, int eventBirthday){
         super(eventName);
         this.eventName = eventName;
         this.eventMonth = eventMonth;
         this.eventDay = eventDay;
         this.eventYear = eventYear;
+        this.eventBirthday = eventBirthday;
+        super.setIsBirthDay(eventBirthday);
     }
 
     protected Event(Parcel in) {
@@ -38,6 +43,7 @@ public class Event extends EventMaster implements Parcelable{
         eventYear = in.readInt();
         eventMonth = in.readInt();
         eventDay = in.readInt();
+        eventBirthday = in.readInt();
     }
 
     public static final Creator<Event> CREATOR = new Creator<Event>() {
@@ -113,5 +119,15 @@ public class Event extends EventMaster implements Parcelable{
         dest.writeInt(eventYear);
         dest.writeInt(eventMonth);
         dest.writeInt(eventDay);
+        dest.writeInt(eventBirthday);
+    }
+
+    @Nullable
+    public int getEventBirthday() {
+        return eventBirthday;
+    }
+
+    public void setEventBirthday(@Nullable int eventBirthday) {
+        this.eventBirthday = eventBirthday;
     }
 }
