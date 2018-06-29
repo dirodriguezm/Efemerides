@@ -50,19 +50,68 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
     private List<Event> retrievedEvents;
     private List<DayMonthEvent> retrievedDayMonthEvents;
     private List<DayNumberEvent> retrievedDayNumberEvents;
+    private Intent intent;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
-        //Locale spanish = new Locale("es", "ES");
-        //Locale.setDefault(spanish);
         informationFragment = new InformationFragment();
         calendarFragment = new CalendarFragment();
 
-
         db = AppDatabase.getAppDatabase(this);
+
+    }
+
+    public void getExtras(){
+        intent = getIntent();
+        if(intent.hasExtra(NuevoDiaActivity.TIPO)){
+            int tipo = intent.getIntExtra(NuevoDiaActivity.TIPO,-1);
+            int day, month, year,pos;
+            String nameEvent = intent.getStringExtra(NuevoDiaActivity.NAME);
+            switch (tipo){
+                case NuevoDiaActivity.DIA:
+                    day = intent.getIntExtra(NuevoDiaActivity.DAY, 0);
+                    month = intent.getIntExtra(NuevoDiaActivity.MONTH, 0);
+                    db.eventDao().insertEvent(new Event(nameEvent,0,month,day,0));
+                    break;
+                case NuevoDiaActivity.DIA_HIST:
+                    day = intent.getIntExtra(NuevoDiaActivity.DAY, 0);
+                    month = intent.getIntExtra(NuevoDiaActivity.MONTH, 0);
+                    year = intent.getIntExtra(NuevoDiaActivity.YEAR, 0);
+                    db.eventDao().insertEvent(new Event(nameEvent,year,month,day,0));
+                    break;
+                case NuevoDiaActivity.DIA_MOVIL:
+                    day = intent.getIntExtra(NuevoDiaActivity.DAY,0);
+                    Boolean setMovil = intent.getBooleanExtra(NuevoDiaActivity.SET_MOVIL,false);
+                    if(setMovil){
+                        month = intent.getIntExtra(NuevoDiaActivity.MONTH,0);
+                        pos = intent.getIntExtra(NuevoDiaActivity.POS,0);
+                        db.dayMonthEventDao().insertDayMonthEvent(new DayMonthEvent(nameEvent,pos,day,month));
+                    }else{
+                        db.dayNumberEventDao().insertDayNumberEvent(new DayNumberEvent(nameEvent,day));
+                    }
+
+                    break;
+                case NuevoDiaActivity.CUMPLE:
+                    day = intent.getIntExtra(NuevoDiaActivity.DAY, 0);
+                    month = intent.getIntExtra(NuevoDiaActivity.MONTH, 0);
+                    Boolean setYear = intent.getBooleanExtra(NuevoDiaActivity.SET_YEAR, false);
+                    if(setYear){
+                        year = intent.getIntExtra(NuevoDiaActivity.YEAR, 0);
+                        db.eventDao().insertEvent(new Event(nameEvent,year,month,day,1));
+                    }else{
+                        db.eventDao().insertEvent(new Event(nameEvent,0,month,day,1));
+                    }
+                    break;
+            }
+        }
+    }
+    @Override
+    public void onResume(){
+        super.onResume();
+        intent = getIntent();
+
+
         new Thread(new Runnable() {
             public void run() {
                 retrievedEvents = db.eventDao().getAll();
@@ -72,11 +121,13 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
                         db.eventDao().insertEvent(event);
                     }
                 }
+
+                getExtras();
+
                 retrievedEvents = db.eventDao().getAll();
                 retrievedDayNumberEvents = db.dayNumberEventDao().getAll();
-                //retrievedDayNumberEvents.add(new DayNumberEvent("Test Dia",178));
                 retrievedDayMonthEvents = db.dayMonthEventDao().getAll();
-                retrievedDayMonthEvents.add(new DayMonthEvent("Test 2", 4, 4, 6)); //ultimo miercoles de junio
+
                 Bundle args = new Bundle();
                 args.putParcelableArrayList(calendarFragment.ARG_EVENTS, (ArrayList<? extends Parcelable>) retrievedEvents);
                 args.putParcelableArrayList(calendarFragment.ARG_DAY_NUMBER_EVENTS, (ArrayList<? extends Parcelable>) retrievedDayNumberEvents);
@@ -99,46 +150,6 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
                 fragmentTransaction.commit();
             }
         }).start();
-
-        Intent intent = getIntent();
-        if(intent.hasExtra(NuevoDiaActivity.TIPO)){
-            int tipo = intent.getIntExtra(NuevoDiaActivity.TIPO,-1);
-            int day, month, year,pos;
-            switch (tipo){
-                case NuevoDiaActivity.DIA:
-                    day = intent.getIntExtra(NuevoDiaActivity.DAY, 0);
-                    month = intent.getIntExtra(NuevoDiaActivity.MONTH, 0);
-
-                    break;
-                case NuevoDiaActivity.DIA_HIST:
-                    day = intent.getIntExtra(NuevoDiaActivity.DAY, 0);
-                    month = intent.getIntExtra(NuevoDiaActivity.MONTH, 0);
-                    year = intent.getIntExtra(NuevoDiaActivity.YEAR, 0);
-
-                    break;
-                case NuevoDiaActivity.DIA_MOVIL:
-                    day = intent.getIntExtra(NuevoDiaActivity.DAY,0);
-                    Boolean setMovil = intent.getBooleanExtra(NuevoDiaActivity.SET_MOVIL,false);
-                    if(setMovil){
-                        month = intent.getIntExtra(NuevoDiaActivity.MONTH,0);
-                        pos = intent.getIntExtra(NuevoDiaActivity.POS,0);
-                    }
-
-                    break;
-                case NuevoDiaActivity.CUMPLE:
-                    day = intent.getIntExtra(NuevoDiaActivity.DAY, 0);
-                    month = intent.getIntExtra(NuevoDiaActivity.MONTH, 0);
-                    Boolean setYear = intent.getBooleanExtra(NuevoDiaActivity.SET_YEAR, false);
-                    if(setYear){
-                        year = intent.getIntExtra(NuevoDiaActivity.YEAR, 0);
-                    }
-                    break;
-            }
-            Log.e("tipo",""+tipo);
-        }
-
-
-
     }
 
     public ArrayList<Event> createEventsFromFile(){
@@ -169,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
                         name += splittedLine[i] + " ";
                     }
                 }
-                events.add(new Event(name, year, month, day));
+                events.add(new Event(name, year, month, day,0));
             }
             return events;
         } catch (IOException e) {
@@ -217,7 +228,7 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
         if(findViewById(R.id.fragment_container2) != null) {
             InformationFragment informationFragment = (InformationFragment) getSupportFragmentManager().findFragmentByTag("information");
             if(informationFragment != null){
-                informationFragment.update(date.getDay() + " de " + monthName[date.getMonth()] + " de " + date.getYear(), events, dayMonthEvents,dayNumberEvents);
+                informationFragment.update(date.getDay(), monthName[date.getMonth()], date.getYear(), events, dayMonthEvents,dayNumberEvents);
             }
         }
 

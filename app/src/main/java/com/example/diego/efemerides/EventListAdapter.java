@@ -1,17 +1,17 @@
 package com.example.diego.efemerides;
 
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 
 class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.ViewHolder> {
     //private ArrayList<Event> events;
@@ -23,12 +23,14 @@ class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.ViewHolder>
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView eventName;
         public TextView eventDescription;
+        public ImageView icon;
         public View layout;
         public ViewHolder(View v) {
             super(v);
             layout = v;
             eventName = v.findViewById(R.id.firstLine);
             eventDescription = v.findViewById(R.id.secondLine);
+            icon = v.findViewById(R.id.icon);
         }
     }
 
@@ -68,13 +70,24 @@ class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.ViewHolder>
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.eventName.setText(events.get(position).getEventName());
-        if(events.get(position).getEventYear() != 0){
+        if(events.get(position).getIsBirthDay() == 1){
+            Drawable cake = holder.layout.getContext().getResources().getDrawable(R.drawable.ic_cake_black_24dp);
+            holder.icon.setImageDrawable(cake);
+            holder.icon.setVisibility(View.VISIBLE);
+            if(events.get(position).getEventYear() != 0){
+                int thisYear = date.getYear();
+                int years = thisYear - events.get(position).getEventYear();
+                holder.eventDescription.setText("Cumple " + years+" años");
+                holder.eventDescription.setVisibility(View.VISIBLE);
+            }
+        }else if(events.get(position).getEventYear() != 0){
+            Drawable cake = holder.layout.getContext().getResources().getDrawable(R.drawable.ic_history_black_24dp);
+            holder.icon.setImageDrawable(cake);
+            holder.icon.setVisibility(View.VISIBLE);
             int thisYear = date.getYear();
             int years = thisYear - events.get(position).getEventYear();
             holder.eventDescription.setText("Aniversario N° " + years);
-        }
-        else{
-            holder.eventDescription.setText("");
+            holder.eventDescription.setVisibility(View.VISIBLE);
         }
     }
 

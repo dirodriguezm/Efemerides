@@ -1,15 +1,10 @@
 package com.example.diego.efemerides;
 
 import android.app.AlertDialog;
-import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
@@ -22,7 +17,6 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
@@ -31,7 +25,6 @@ import android.widget.Toast;
 
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 
-import java.lang.reflect.Field;
 import java.util.Calendar;
 
 public class NuevoDiaActivity extends AppCompatActivity implements TextView.OnEditorActionListener {
@@ -41,6 +34,7 @@ public class NuevoDiaActivity extends AppCompatActivity implements TextView.OnEd
     public static final int DIA_MOVIL = 2;
     public static final int CUMPLE = 3;
     public static final int dimension = 2;
+
     public static String[] meses = { "Enero", "Febrero", "Marzo","Abril","Mayo", "Junio", "Julio",
             "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
     public static String[] dias = { "Lunes", "Martes", "Miercoles","Jueves",
@@ -49,8 +43,8 @@ public class NuevoDiaActivity extends AppCompatActivity implements TextView.OnEd
     public static int[] diasMes = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     public static int[] diasMesBisiesto = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
+    public static final String NAME = "nombre";
     public static final String TIPO = "tipo";
-    //public static final String DATE = "date";
     public static final String DAY = "day";
     public static final String MONTH = "month";
     public static final String YEAR = "year";
@@ -121,6 +115,7 @@ public class NuevoDiaActivity extends AppCompatActivity implements TextView.OnEd
 
         if(setDate && setName){
             Intent main = new Intent(this, MainActivity.class);
+            main.putExtra(NAME,nombreEvento );
             switch (item){
                 case DIA:
                     main.putExtra(TIPO,DIA);
@@ -301,8 +296,6 @@ public class NuevoDiaActivity extends AppCompatActivity implements TextView.OnEd
             imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
             nombre.clearFocus();
-
-
 
             return true;
         }

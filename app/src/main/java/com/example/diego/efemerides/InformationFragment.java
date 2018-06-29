@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -34,7 +35,9 @@ public class InformationFragment extends Fragment {
     public static String ARG_EVENT = "event";
     public static String ARG_DAY_MONTH_EVENT = "dayMonthEvent";
     public static String ARG_DAY_NUMBER_EVENT = "dayNumberEvent";
-    private TextView textView;
+    private TextView dia;
+    private TextView mes;
+    private TextView año;
     private CalendarDay dateParam = CalendarDay.from(Calendar.getInstance());
     private Collection<Event> events;
     private Collection<DayMonthEvent> dayMonthEvents;
@@ -44,7 +47,7 @@ public class InformationFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private RecyclerView.Adapter adapter;
-    private RecyclerView.LayoutManager layoutManager;
+    private LinearLayoutManager layoutManager;
     private String[] monthNames = {"Enero","Febrero", "Marzo","Abril","Mayo","Junio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"};
     public InformationFragment() {
         // Required empty public constructor
@@ -82,18 +85,27 @@ public class InformationFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_information, container, false);
-        textView = view.findViewById(R.id.fecha_titulo);
-        textView.setText(dateParam.getDay() + " de " + monthNames[dateParam.getMonth()] + " de " + dateParam.getYear());
+
+        dia = view.findViewById(R.id.dia);
+        mes = view.findViewById(R.id.mes);
+        año = view.findViewById(R.id.año);
+
+        dia.setText(Integer.toString(dateParam.getDay()));
+        mes.setText(monthNames[dateParam.getMonth()]);
+        año.setText(Integer.toString(dateParam.getYear()));
+
         recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(this.getContext());
         recyclerView.setLayoutManager(layoutManager);
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
+                layoutManager.getOrientation());
+        recyclerView.addItemDecoration(dividerItemDecoration);
         adapter = new EventListAdapter((ArrayList<Event>) events, (ArrayList<DayMonthEvent>)dayMonthEvents, (ArrayList<DayNumberEvent>)dayNumberEvents, dateParam);
         recyclerView.setAdapter(adapter);
         return view;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -117,8 +129,10 @@ public class InformationFragment extends Fragment {
         mListener = null;
     }
 
-    public void update(String text, Collection<Event> events, Collection<DayMonthEvent> dayMonthEvents, Collection<DayNumberEvent> dayNumberEvents) {
-        textView.setText(text);
+    public void update(int dia, String mes, int año, Collection<Event> events, Collection<DayMonthEvent> dayMonthEvents, Collection<DayNumberEvent> dayNumberEvents) {
+        this.dia.setText(Integer.toString(dia));
+        this.mes.setText(mes);
+        this.año.setText(Integer.toString(año));
         ArrayList<Event> events1 = new ArrayList<>();
         ArrayList<DayMonthEvent> events2 = new ArrayList<>();
         ArrayList<DayNumberEvent> events3 = new ArrayList<>();
@@ -132,14 +146,8 @@ public class InformationFragment extends Fragment {
             events2.add(event);
         }
         adapter = new EventListAdapter(events1, events2,events3, dateParam);
-        Log.d("PASSING TO ADAPTER", events2.size() +"");
         recyclerView.setAdapter(adapter);
     }
-
-    public String getText(){
-        return (String) textView.getText();
-    }
-
 
     /**
      * This interface must be implemented by activities that contain this
